@@ -1,0 +1,186 @@
+JMeSudoYu changelog
+
+Version 1.7
+* changed to Android (Android Studio) for main development
+* changes to more developer-friendly ISC license
+* reordered changelog to show most recent changes first
+* used Android Studio lint to clean up code
+
+Version 1.61
+* added loadBoard() function
+ - manages different save format using SaveResource class (more portable)
+* added saveBoard() function
+ - complementary to loadBoard function
+* loadOptions() -> legacyLoadBoard() [MeController Class]
+ - the beginnings of changes in the save format for j2me
+ - caller for this function added to loadBoard() function
+* saveOptions() -> legacySaveBoard() [MeController Class]
+* updated drawChoice() function (MePainter class) to mark completed numbers green
+ - now consistent with graphical version
+* modified drawChoice() function (mePainter class) to *not* mark "current number"
+ - usability testing suggests that this feature is confusing
+* Oh, and... added GPL headers to all files
+
+Version 1.60 -- after gringer's Summer Of Code
+* intial build of standard Java graphical port (GMeSudoYu)
+* patched up [again] pointer press method in Commander
+* added pos2cell methods to Painter for converting from graphical coordinates
+  to row/column (removes another Commander dependence on graphical features)
+* added vertical get/set methods to Painter (removes another Commander
+  dependence on graphical features)
+* changed load/save methods to not require string names
+* added help/keys message (removes Commander's assumption of a j2me
+  port for help messages)
+* added toFileBitsString method to Point class
+ - outputs current candidates as a string
+* added numberComplete method to Board class
+ - determines if all of one number has been entered
+* converted logic methods to boolean, returns back to starting with
+  simple logic on successful logic level solve (applyLogic method of Board)
+* Used changed flag for logic methods, rather than counting singles
+  (allows analyse function to work)
+* applyLogic method in Board class now returns a String indicating how
+  many applications at each level were carried out
+* added analyse function to Controller class
+ - gives an indication of how difficult the puzzle will be
+* changed level 1 logic (applyLogic, Board class) to only act on single Points
+ - speed increase (hopefully) at beginning of generation
+* removed 'pointerMode' boolean (Commander class)
+ - usability tests suggest that click location, then place number makes more sense
+* added union/intersection (set logic) methods to Line class
+* added logic level 5
+ - searches for hidden/exposed subsets
+* added GraphicsEnvironment.isHeadless() checks to allow GMeSudoYu to generate
+  puzzles in the absence of a graphical environment.
+* added saveBoard(String) to GController class
+ - generates text-style puzzles, saves to specified file
+* added command-line functionality to GMeSudoYu
+ - generates text-style puzzles, saves to file specified by first command-line
+   argument
+* renamed staticLoadInt(int[]) / staticSaveInt(int[]) methods (Board class) to
+  staticLoad(int[]) / staticSave(int[])
+* new class: SaveResource
+ - designed to manage binary game data storage. This should make the j2me record
+   storage a bit easier, as well as providing a way for other ports to retain
+   state/settings.
+ - can currently store settings (as key/value pairs) and Boards as byte arrays
+* added saveState function (GController class)
+ - allows program to store the game state for loading at startup
+* added loadState function (GController class)
+ - allows program to restore the previous game state at startup
+* added complementCheck(Line) and complement(Line) functions (Line class)
+ - a generalisation/replacement of boxDeath (Box class) that also considers
+   Line-Box intersections (rather than just Box-Line interactions)
+ - seems to be similar (or possibly slightly faster) in speed
+ - removes the need for a specialised Box class
+* changed references to Box class to reference Line class
+* utilised changed flag in puzzle solution / generation
+ - if no Points within a row/column/box have changed, then don't do
+   anything to that row/column/box
+* completed numbers now appear green in sidebar
+
+Version 1.51
+* added 'error' flag, for indicating when an obvious error has been made
+ - draws current location red if error
+* added in-game create function to console port
+
+Version 1.50
+* pointer outside board area should select correct number now 
+ - was previously one less
+* initial build of console port (CMeSudoYu)
+* added setXPos, setYPos methods to Commander
+* added setCand method to Commander
+* if 9 candidates before a flip, flip method will set only that number 
+  as a candidate. Similarly, if 0 candidates after a flip,
+  set all possible numbers as candidates (Board).
+ - previously only flipped the bit for that number
+* changed candidate mode drawing method to use non-candidate drawing method for
+  everything except where 2 or more (but not all) numbers are candidates
+* removed candidate mode configuration option -- now defaults to candidate mode
+
+Version 1.42
+* changed simple solve (MiniSolve) to menu option
+ - removed l1 solve on entry to pencil mode
+
+Version 1.41
+* simple solve (level 1) on entry into pencil mode
+
+Version 1.40
+* bitcounting changed to lookup table (speed improvement)
+
+Version 1.39
+* clear / remove now reset expert level to 0 (nothing selected)
+* clear / remove will not work on expert level 1 (box selected)
+
+Version 1.38
+* changed win message to something more neutral (Puzzle has been solved)
+* number mode hidden, replaced with expert mode
+
+Version 1.37
+* candidate / pencil mode now toggles bits, instead of setting a single candidate
+
+Version 1.36
+* moved load/save to controller class
+* completed JavaDoc comments for all non-abstract generic classes
+* completed JavaDoc comments for abstract generic classes
+* implemented candidate / pencil mode display
+ - activated via '0'
+
+Version 1.35
+* first attempt to vibrate on win
+
+Version 1.34
+* altered priority of quit menu item to be < reset, create, solve
+
+Version 1.33
+* movement wraps around when moving cursor
+
+Version 1.32
+* documented a few functions in Board class
+* fixed a few bugs
+ - (re)implemented undo in number mode
+ - creating puzzle now resets the flag for the win state
+ - possibly better tap functionality
+
+Version 1.31
+* removed MeController references from Board class
+
+Version 1.30
+* major refactoring of source code to make code more portable
+* added a few more classes / interfaces
+ - split MeBoard into Board (generic) and MePainter (specific)
+ - split MeController into Commander (generic) and MeController (specific)
+ - added Painter and Controller abstract classes
+ - shifted j2me independent functions from MeController to Commander
+
+Version 1.20
+* changed LOGIC_MAX back to 4
+* changed expert mode draw function to clear box whenever level==0
+ - regression after drawing changed to update less of the screen
+
+Version 1.19
+* added number flip mode (for those used to keyboards)
+
+Version 1.18
+* changed error display at startup - no alert message
+
+Version 1.17
+* changed win state - now checked after number mode placement
+
+Version 1.16
+* changed alertMsg/infoMsg to not setDisplay after alert pops up
+
+Version 1.15
+* added "Check" function - determines validity of a solution
+
+Version 1.14
+* changed UI, '*' clears, instead of doing an undo
+
+Pre-version 1.13
+* added locking feature on board
+* added undo feature
+* changed UI default, numbers set, select clears
+* changed speed (~10x) of puzzle generation
+* added expert mode, allows entry in any unlocked cell in 3 presses
+* added side bar showing selected number (on longest side)
+ - tappable with touchscreen interface
