@@ -1,9 +1,62 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MyActivity" >
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
+    tools:context=".AndMeSudoYu" >
+  <group android:id="@+id/action_group_common">
+    <item android:id="@+id/action_create"
+          android:title="@string/action_create"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_check"
+          android:title="@string/action_check"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_quit"
+          android:title="@string/action_quit"
+          app:showAsAction="ifRoom" />
+  </group>
+  <group android:id="@+id/action_group_help">
+    <item android:id="@+id/action_help"
+          android:title="@string/action_help"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_keys"
+          android:title="@string/action_keys"
+          app:showAsAction="ifRoom" />
+  </group>
+
+  <group android:id="@+id/action_group_program">
+    <item android:id="@+id/action_undo"
+          android:title="@string/action_undo"
+          app:showAsAction="ifRoom" />
+  </group>
+
+  <group android:id="@+id/action_group_puzzle">
+    <item android:id="@+id/action_reset"
+          android:title="@string/action_reset"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_lock"
+          android:title="@string/action_lock"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_unlock"
+          android:title="@string/action_unlock"
+          app:showAsAction="ifRoom" />
+  </group>
+  <group android:id="@+id/action_group_logic">
+    <item android:id="@+id/action_analyse"
+          android:title="@string/action_analyse"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_solve"
+          android:title="@string/action_solve"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_minisolve"
+          android:title="@string/action_minisolve"
+          app:showAsAction="ifRoom" />
+  </group>
+
+  <group android:id="@+id/action_group_settings">
+    <item android:id="@+id/action_expert"
+          android:title="@string/action_expert"
+          app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_keyflip"
+          android:title="@string/action_keyflip"
+          app:showAsAction="ifRoom" />
+  </group>
 </menu>

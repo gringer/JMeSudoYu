@@ -18,6 +18,9 @@
  */
 package org.gringene.jmesudoyu;
 
+import android.media.Image;
+import android.support.v7.app.ActionBarActivity;
+
 import org.gringene.jmesudoyu.base.Board;
 import org.gringene.jmesudoyu.base.Commander;
 import org.gringene.jmesudoyu.base.Controller;
@@ -26,58 +29,23 @@ import org.gringene.jmesudoyu.base.SaveResource;
 
 import java.io.*;
 
-public class AndController extends Canvas implements CommandListener, Controller {
+public class AndController implements Controller {
   private static byte[] SAVEVERSION = {1, 0};
   Board gameBoard;
   Commander gameCommand;
   AndPainter gamePainter;
-  Image sudImage;
-  Display sDisplay;
-  RecordStore sudRStore;
-  MIDlet sMIDlet;
   Thread thread;
   int w, h;
   boolean makePuzzle;
-  public AndController(Board tBoard, MIDlet tMIDlet) {
+  public AndController(Board tBoard) {
     super();
-    sMIDlet = tMIDlet;
-    sDisplay = Display.getDisplay(tMIDlet);
     gameBoard = tBoard;
-    w = Math.min(super.getWidth(), super.getHeight());
-    h = Math.min(super.getWidth(), super.getHeight());
+    gamePainter = new AndPainter(this, gameBoard);
+    w = Math.min(tPainter.getWidth(), tPainter.getHeight());
+    h = Math.min(tPainter.getWidth(), tPainter.getHeight());
     //System.out.println("screen is " + w + "x" + h);
-    sudImage = Image.createImage(super.getWidth(), super.getHeight());
-    Command temp = new Command("Help", Command.HELP, 1);
-    this.addCommand(temp);
-    temp = new Command("Keys", Command.HELP, 1);
-    this.addCommand(temp);
-    temp = new Command("Undo", Command.SCREEN, 1);
-    this.addCommand(temp);
-    temp = new Command("Check", Command.SCREEN, 2);
-    this.addCommand(temp);
-    temp = new Command("Analyse", Command.SCREEN, 2);
-    this.addCommand(temp);
-    temp = new Command("Reset", Command.SCREEN, 3);
-    this.addCommand(temp);
-    temp = new Command("Create", Command.SCREEN, 3);
-    this.addCommand(temp);
-    temp = new Command("Solve", Command.SCREEN, 3);
-    this.addCommand(temp);
-    temp = new Command("MiniSolve", Command.SCREEN, 3);
-    this.addCommand(temp);
-    temp = new Command("Quit", Command.EXIT, 4);
-    this.addCommand(temp);
-    temp = new Command("Expert", Command.SCREEN, 5);
-    this.addCommand(temp);
-    temp = new Command("Lock", Command.SCREEN, 5);
-    this.addCommand(temp);
-    temp = new Command("Unlock", Command.SCREEN, 5);
-    this.addCommand(temp);
-    temp = new Command("Keyflip", Command.SCREEN, 6);
-    this.addCommand(temp);
-    gamePainter = new MePainter(this, gameBoard);
     int fh = gamePainter.getFontHeight();
-    gamePainter.setVertical(super.getWidth() > super.getHeight());
+    gamePainter.setVertical(gamePainter.getWidth() > gamePainter.getHeight());
     gamePainter.setSize(
         w / 9,
         h / 9,
@@ -85,19 +53,9 @@ public class AndController extends Canvas implements CommandListener, Controller
         h / 18 - fh / 2 + 1);
     gameCommand = new Commander(this, gameBoard, gamePainter);
   }
-  /* Retrieves the display so that other classes can use it and draw
-     to it */
-  public Display getDisplay() {
-    return sDisplay;
-  }
-  /**
-   * Retrieves the graphics image/object from the drawing image
-   * @return The graphics object of the image
-   */
-  public Graphics getImage() {
-    return sudImage.getGraphics();
-  }
+
   protected void keyRepeated(int keyCode) {}
+
   protected void keyPressed(int keyCode) {
     int GAKey = this.getGameAction(keyCode);
     if (gameCommand.numChange(keyCode - Canvas.KEY_NUM0));
@@ -412,6 +370,17 @@ public class AndController extends Canvas implements CommandListener, Controller
     }
     sDisplay.setCurrent(f);
   }
+
+  @Override
+  public int getWidth() {
+    return 0;
+  }
+
+  @Override
+  public int getHeight() {
+    return 0;
+  }
+
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Controller#helpMessage()
    */

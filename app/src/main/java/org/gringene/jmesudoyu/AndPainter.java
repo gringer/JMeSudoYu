@@ -24,9 +24,16 @@ import org.gringene.jmesudoyu.base.GlobalVar;
 import org.gringene.jmesudoyu.base.Painter;
 import org.gringene.jmesudoyu.base.Point;
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public class AndPainter implements Runnable, Painter {
+public class AndPainter extends SurfaceView implements Painter, Runnable {
   static int STARTX = 0;
   static int STARTY = 0;
   static int WHITE = 0x00FFFFFF;
@@ -36,8 +43,10 @@ public class AndPainter implements Runnable, Painter {
   static int BLUE = 0x000000FF;
   static int DKGREY = 0x007F7F7F;
   static int GREY = 0x00B0B0B0;
-  static int BOARDFONT = Font.FACE_MONOSPACE;
-  static int BFSIZE = Font.SIZE_MEDIUM;
+  static Typeface BOARDFONT = Typeface.MONOSPACE;
+  static float BFSIZE = 15;
+  int displayWidth = 320;
+  int displayHeight = 240;
   int SQUAREWIDTH = 14;
   int SQUAREHEIGHT = 14;
   int TX = 2;
@@ -51,30 +60,44 @@ public class AndPainter implements Runnable, Painter {
   AndController gamePanel;
   Board gameBoard;
   Canvas easel;
+  Paint brushes;
+  Bitmap backBuffer;
+  Context paintContext;
+  Rect fontXRect;
 
   int old0, old1;
   GlobalVar v0, v1;
-  Gauge g0, g1;
   Thread thread;
   /**
    * Constructor for this class. Sets all fields to their default values, and
    * links the class to a org.gringene.jmesudoyu.base.Controller and a Board.
    */
-  public AndPainter(AndController tPanel, Board tBoard) {
-    super();
+  public AndPainter(Context tContext, AndController tPanel, Board tBoard) {
+    super(tContext);
+    paintContext = tContext;
     gamePanel = tPanel;
     gameBoard = tBoard;
     // just in case update gets called on them
-    g0 = new Gauge("Nothing", false, 100, 0);
-    g1 = new Gauge("Nothing", false, 100, 0);
     v0 = new GlobalVar();
     v1 = new GlobalVar();
+    brushes.getTextBounds("X",0,1,fontXRect);
   }
+
+  public void surfaceCreated(SurfaceHolder tHolder){
+    displayWidth = this.getWidth();
+    displayHeight = this.getHeight();
+    easel = new Canvas();
+    backBuffer = Bitmap.createBitmap(displayWidth, displayHeight, Bitmap.Config.ARGB_8888);
+    easel.setBitmap(backBuffer);
+    brushes = new Paint();
+  }
+
+
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#getFontHeight()
    */
   public int getFontHeight() {
-    return Font.getFont(BOARDFONT, Font.STYLE_BOLD, BFSIZE).getHeight();
+    return fontXRect.height();
   }
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#setSize(int, int, int, int)
@@ -89,24 +112,8 @@ public class AndPainter implements Runnable, Painter {
     CANDSEP = Math.min(CANDWIDTH, CANDHEIGHT) > 1 ? 1 : 0;
     CANDX = SQUAREWIDTH / 2;
     CANDY = SQUAREHEIGHT / 2;
-    easel = gamePanel.getImage();
-    easel.setFont(Font.getFont(BOARDFONT, Font.STYLE_BOLD, BFSIZE));
   }
-  /**
-   * @param gaugeID gauge ID to modify
-   * @param tGauge new Gauge to replace old version
-   * @param tVar GlobalVar to link to gauge
-   */
-  public void setGauge(int gaugeID, Gauge tGauge, GlobalVar tVar){
-    if(gaugeID == 0){
-      g0 = tGauge;
-      v0 = tVar;
-    }
-    else if (gaugeID == 1){
-      g1 = tGauge;
-      v1 = tVar;
-    }
-  }
+
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#startUpdate()
    */
@@ -133,18 +140,18 @@ public class AndPainter implements Runnable, Painter {
     else
       xmul = 1;
     for (int i = 0; i < 9; i++) {
-      easel.setColor(BLACK);
+      brushes.setColor(BLACK);
 //         if (i == tVal) {
 //            easel.setColor(RED);
 //         }
       if(gameBoard.numberComplete(i)){
-        easel.setColor(GREEN);
+        brushes.setColor(GREEN);
       }
-      easel.drawString(
+      easel.drawText(
           "" + (i + 1),
           STARTX + ymul * 9 * SQUAREWIDTH + xmul * i * SQUAREWIDTH + TX,
           STARTY + xmul * 9 * SQUAREHEIGHT + ymul * i * SQUAREHEIGHT + TY,
-          Graphics.TOP | Graphics.LEFT);
+          brushes);
     }
   }
   /* (non-Javadoc)
@@ -152,31 +159,31 @@ public class AndPainter implements Runnable, Painter {
    */
   public void drawBoard(boolean doCands) {
     erase();
-    easel.setColor(GREY);
+    brushes.setColor(GREY);
     for (int i = 0; i < 10; i++) {
       easel.drawLine(
           STARTX + i * SQUAREWIDTH,
           STARTY,
           STARTX + i * SQUAREWIDTH,
-          STARTY + SQUAREHEIGHT * 9);
+          STARTY + SQUAREHEIGHT * 9, brushes);
       easel.drawLine(
           STARTX,
           STARTY + i * SQUAREHEIGHT,
           STARTX + SQUAREWIDTH * 9,
-          STARTY + i * SQUAREHEIGHT);
+          STARTY + i * SQUAREHEIGHT, brushes);
     }
-    easel.setColor(BLACK);
+    brushes.setColor(BLACK);
     for (int i = 0; i < 4; i++) {
       easel.drawLine(
           STARTX + i * SQUAREWIDTH * 3,
           STARTY,
           STARTX + i * SQUAREWIDTH * 3,
-          STARTY + SQUAREHEIGHT * 9);
+          STARTY + SQUAREHEIGHT * 9, brushes);
       easel.drawLine(
           STARTX,
           STARTY + i * SQUAREHEIGHT * 3,
           STARTX + SQUAREWIDTH * 9,
-          STARTY + i * SQUAREHEIGHT * 3);
+          STARTY + i * SQUAREHEIGHT * 3, brushes);
     }
     int xmul = 0;
     int ymul = 0;
@@ -188,41 +195,45 @@ public class AndPainter implements Runnable, Painter {
       for (int c = 0; c < 9; c++) {
         drawPos(c, r, doCands);
       }
-      easel.setColor(GREY);
-      easel.fillRect(
-          STARTX + ymul * 9 * SQUAREWIDTH + xmul * r * SQUAREWIDTH,
-          STARTY + xmul * 9 * SQUAREHEIGHT + ymul * r * SQUAREHEIGHT,
-          SQUAREWIDTH,
-          SQUAREHEIGHT);
-      easel.setColor(BLACK);
+      brushes.setColor(GREY);
+      brushes.setStyle(Paint.Style.FILL);
       easel.drawRect(
           STARTX + ymul * 9 * SQUAREWIDTH + xmul * r * SQUAREWIDTH,
           STARTY + xmul * 9 * SQUAREHEIGHT + ymul * r * SQUAREHEIGHT,
           SQUAREWIDTH,
-          SQUAREHEIGHT);
+          SQUAREHEIGHT, brushes);
+      brushes.setColor(BLACK);
+      brushes.setStyle(Paint.Style.STROKE);
+      easel.drawRect(
+          STARTX + ymul * 9 * SQUAREWIDTH + xmul * r * SQUAREWIDTH,
+          STARTY + xmul * 9 * SQUAREHEIGHT + ymul * r * SQUAREHEIGHT,
+          SQUAREWIDTH,
+          SQUAREHEIGHT, brushes);
     }
   }
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#drawSquare(int, int)
    */
   public void drawSquare(int tx, int ty) {
-    easel.setColor(BLUE);
+    brushes.setColor(BLUE);
+    brushes.setStyle(Paint.Style.STROKE);
     easel.drawRect(
         STARTX + tx * SQUAREWIDTH + 1,
         STARTY + ty * SQUAREHEIGHT + 1,
         SQUAREWIDTH - 2,
-        SQUAREHEIGHT - 2);
+        SQUAREHEIGHT - 2, brushes);
   }
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#clearPos(int, int, boolean)
    */
   public void clearPos(int tx, int ty, boolean doCands){
-    easel.setColor(WHITE);
-    easel.fillRect(
+    brushes.setColor(WHITE);
+    brushes.setStyle(Paint.Style.FILL);
+    easel.drawRect(
         STARTX + tx * SQUAREWIDTH + 1,
         STARTY + ty * SQUAREHEIGHT + 1,
         SQUAREWIDTH - 1,
-        SQUAREHEIGHT - 1);
+        SQUAREHEIGHT - 1, brushes);
     drawPos(tx,ty, doCands);
   }
   /* (non-Javadoc)
@@ -232,12 +243,12 @@ public class AndPainter implements Runnable, Painter {
     clearPos(tx,ty, doCands);
     drawSquare(tx, ty);
     if (doNum) {
-      easel.setColor(DKGREY);
-      easel.drawString(
+      brushes.setColor(DKGREY);
+      easel.drawText(
           "" + (pVal + 1),
           tx * SQUAREWIDTH + STARTX + TX,
           ty * SQUAREHEIGHT + STARTY + TY,
-          Graphics.TOP | Graphics.LEFT);
+          brushes);
     }
   }
   /* (non-Javadoc)
@@ -246,12 +257,13 @@ public class AndPainter implements Runnable, Painter {
   public void drawBox(int boxNum) {
     int bx = boxNum % 3;
     int by = boxNum / 3;
-    easel.setColor(BLUE);
+    brushes.setColor(BLUE);
+    brushes.setStyle(Paint.Style.STROKE);
     easel.drawRect(
         STARTX + bx * 3 * SQUAREWIDTH + 1,
         STARTY + by * 3 * SQUAREHEIGHT + 1,
         SQUAREWIDTH * 3 - 2,
-        SQUAREHEIGHT * 3 - 2);
+        SQUAREHEIGHT * 3 - 2, brushes);
   }
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#clearBox(int)
@@ -259,32 +271,34 @@ public class AndPainter implements Runnable, Painter {
   public void clearBox(int boxNum) {
     int bx = boxNum % 3;
     int by = boxNum / 3;
-    easel.setColor(WHITE);
+    brushes.setColor(WHITE);
+    brushes.setStyle(Paint.Style.STROKE);
     easel.drawRect(
         STARTX + bx * 3 * SQUAREWIDTH + 1,
         STARTY + by * 3 * SQUAREHEIGHT + 1,
         SQUAREWIDTH * 3 - 2,
-        SQUAREHEIGHT * 3 - 2);
-    easel.setColor(GREY);
+        SQUAREHEIGHT * 3 - 2, brushes);
+    brushes.setColor(GREY);
     for(int i=1; i<3; i++){
       easel.drawLine(
           STARTX + (bx * 3 + i) * SQUAREWIDTH,
           STARTY + by * 3 * SQUAREHEIGHT + 1,
           STARTX + (bx * 3 + i) * SQUAREWIDTH,
-          STARTY + (by + 1) * 3 * SQUAREHEIGHT - 1);
+          STARTY + (by + 1) * 3 * SQUAREHEIGHT - 1, brushes);
       easel.drawLine(
           STARTX + bx * 3 * SQUAREWIDTH + 1,
           STARTY + (by * 3 + i) * SQUAREHEIGHT,
           STARTX + (bx + 1) * 3 * SQUAREWIDTH - 1,
-          STARTY + (by * 3 + i) * SQUAREHEIGHT);
+          STARTY + (by * 3 + i) * SQUAREHEIGHT, brushes);
     }
   }
   /**
    * Clear the entire board
    */
   private void erase(){
-    easel.setColor(WHITE);
-    easel.fillRect(0, 0, gamePanel.getWidth(), gamePanel.getHeight());
+    brushes.setColor(WHITE);
+    brushes.setStyle(Paint.Style.FILL);
+    easel.drawRect(0, 0, displayWidth, displayHeight, brushes);
   }
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Painter#drawPos(int, int, boolean)
@@ -292,42 +306,43 @@ public class AndPainter implements Runnable, Painter {
   public void drawPos(int tx, int ty, boolean doCands){
     Point tPoint = gameBoard.getPoint(tx, ty);
     if (tPoint.getLocked())
-      easel.setColor(BLACK);
+      brushes.setColor(BLACK);
     else{
       if (tPoint.getError())
-        easel.setColor(RED);
+        brushes.setColor(RED);
       else
-        easel.setColor(BLUE);
+        brushes.setColor(BLUE);
     }
     if(!doCands){
-      easel.drawString(
+      easel.drawText(
           tPoint.toString(),
           tx * SQUAREWIDTH + STARTX + TX,
           ty * SQUAREHEIGHT + STARTY + TY,
-          Graphics.TOP | Graphics.LEFT);
+          brushes);
     }
     else{
       if((tPoint.countBits() > 1) && (tPoint.countBits() < 9)){
         int pVal = tPoint.getValue();
+        brushes.setStyle(Paint.Style.FILL);
         for(int i=0; i < 9; i++){
           if((pVal & (1 << i)) != 0){
             int px = CANDX - ((CANDWIDTH >> 1) + CANDWIDTH) - (CANDSEP << 1)
                 + (tx * SQUAREWIDTH) + STARTX;
             int py = CANDY - ((CANDHEIGHT >> 1) + CANDHEIGHT) - (CANDSEP << 1)
                 + (ty * SQUAREHEIGHT) + STARTY;
-            easel.fillRect(
+            easel.drawRect(
                 px + (i % 3) * (CANDWIDTH + CANDSEP) + CANDSEP,
                 py + (i / 3) * (CANDWIDTH + CANDSEP) + CANDSEP,
-                CANDWIDTH, CANDHEIGHT);
+                CANDWIDTH, CANDHEIGHT, brushes);
           }
         }
       }
       else{
-        easel.drawString(
+        easel.drawText(
             tPoint.toString(),
             tx * SQUAREWIDTH + STARTX + TX,
             ty * SQUAREHEIGHT + STARTY + TY,
-            Graphics.TOP | Graphics.LEFT);
+            brushes);
       }
     }
   }
@@ -339,12 +354,10 @@ public class AndPainter implements Runnable, Painter {
     while (mythread == thread) {
       if(v0.notEquals(old0)){
         old0 = v0.getValue();
-        g0.setValue(old0);
 
       }
       if(v1.notEquals(old1)){
         old1 = v1.getValue();
-        g1.setValue(old1);
       }
       try{
         Thread.sleep(200);

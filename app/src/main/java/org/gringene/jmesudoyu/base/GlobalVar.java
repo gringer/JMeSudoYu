@@ -21,43 +21,59 @@ package org.gringene.jmesudoyu.base;
 
 /**
  * @author gringer
- * 
- * A global variable class that does nothing except store an integer.
+ *
+ * A global variable class that does nothing except store an integer. The integer can be named with
+ * a label if desired.
  */
 public class GlobalVar {
-   private int value = 0;
+  private final String varLabel;
+  private int value = 0;
 
-   /**
-    * Sets the internal integer to a specific value
-    * @param tVal New value that the global variable should be set to 
-    */
-   public void setValue(int tVal) {
-      value = tVal;
-   }
+  public GlobalVar() {
+    varLabel = "";
+  }
 
-   /**
-    * Retrieves the current representation of this global variable.
-    * @return The integer stored in the global variable class
-    */
-   public int getValue() {
-      return value;
-   }
+  public GlobalVar(String tLabel){
+    varLabel = tLabel;
+  }
 
-   /**
-    * Compares the internal value with another integer.
-    * @param tVal Value to compare this global variable with 
-    * @return True if the the two values are the same
-    */
-   public boolean equals(int tVal) {
-      return value == tVal;
-   }
+  /**
+   * Retrieves the current label for this global variable.
+   * @return The label associated with this global variable class
+   */
+  public String getLabel() { return varLabel; }
 
-   /**
-    * Compares the internal value with another integer.
-    * @param tVal Value to compare this global variable with 
-    * @return True if the the two values are <em>different</em>
-    */
-   public boolean notEquals(int tVal) {
-      return value != tVal;
-   }
+  /**
+   * Retrieves the current representation of this global variable.
+   * @return The integer stored in the global variable class
+   */
+  public int getValue() {
+    return value;
+  }
+
+  /**
+   * Sets the internal integer to a specific value
+   * @param tVal New value that the global variable should be set to
+   */
+  public void setValue(int tVal) {
+    value = tVal;
+  }
+
+  /**
+   * Compares the internal value with another integer.
+   * @param tVal Value to compare this global variable with
+   * @return True if the the two values are the same
+   */
+  public boolean equals(int tVal) {
+    return value == tVal;
+  }
+
+  /**
+   * Compares the internal value with another integer.
+   * @param tVal Value to compare this global variable with
+   * @return True if the the two values are <em>different</em>
+   */
+  public boolean notEquals(int tVal) {
+    return value != tVal;
+  }
 }
