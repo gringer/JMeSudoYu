@@ -12,9 +12,15 @@
   <string name="action_check">Check</string>
   <string name="action_analyse">Analyse</string>
   <string name="action_solve">Solve</string>
-  <string name="action_minisolve">Mini-solve</string>
+  <string name="action_minisolve">MiniSolve</string>
   <string name="action_quit">Quit</string>
   <string name="action_expert">Expert</string>
   <string name="action_keyflip">Keyflip</string>
+  <string name="ok">Ok</string>
+  <string name="button_cancel">Cancel</string>
+  <string name="button_accept">Accept</string>
+  <string name="dialog_puzzle_title">Puzzle</string>
+  <string name="dialog_puzzle_progress_fixed">Removals</string>
+  <string name="dialog_puzzle_progress_limit">Time</string>
 
 </resources>

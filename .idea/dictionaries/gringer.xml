@@ -15,6 +15,7 @@
       <w>jmesudoyu</w>
       <w>keyflip</w>
       <w>minisolve</w>
+      <w>saveversion</w>
       <w>settingssize</w>
       <w>squareheight</w>
       <w>squarewidth</w>
@@ -22,6 +23,9 @@
       <w>starty</w>
       <w>sudo</w>
       <w>sudoku</w>
+      <w>vert</w>
+      <w>xmul</w>
+      <w>ymul</w>
     </words>
   </dictionary>
 </component>

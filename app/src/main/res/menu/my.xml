@@ -8,6 +8,7 @@
           app:showAsAction="ifRoom" />
     <item android:id="@+id/action_check"
           android:title="@string/action_check"
+          android:icon="@drawable/ic_action_accept"
           app:showAsAction="ifRoom" />
     <item android:id="@+id/action_quit"
           android:title="@string/action_quit"
@@ -16,14 +17,17 @@
   <group android:id="@+id/action_group_help">
     <item android:id="@+id/action_help"
           android:title="@string/action_help"
+          android:icon="@drawable/ic_action_help"
           app:showAsAction="ifRoom" />
     <item android:id="@+id/action_keys"
           android:title="@string/action_keys"
+          android:icon="@drawable/ic_action_keyboard"
           app:showAsAction="ifRoom" />
   </group>
 
   <group android:id="@+id/action_group_program">
     <item android:id="@+id/action_undo"
+          android:icon="@drawable/ic_action_undo"
           android:title="@string/action_undo"
           app:showAsAction="ifRoom" />
   </group>
@@ -42,6 +46,7 @@
   <group android:id="@+id/action_group_logic">
     <item android:id="@+id/action_analyse"
           android:title="@string/action_analyse"
+          android:icon="@drawable/ic_action_paste"
           app:showAsAction="ifRoom" />
     <item android:id="@+id/action_solve"
           android:title="@string/action_solve"

@@ -18,8 +18,18 @@
  */
 package org.gringene.jmesudoyu;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.media.Image;
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
+import android.view.KeyEvent;
+import android.widget.Toast;
 
 import org.gringene.jmesudoyu.base.Board;
 import org.gringene.jmesudoyu.base.Commander;
@@ -29,20 +39,22 @@ import org.gringene.jmesudoyu.base.SaveResource;
 
 import java.io.*;
 
-public class AndController implements Controller {
-  private static byte[] SAVEVERSION = {1, 0};
+public class AndController implements Controller, DialogInterface.OnClickListener {
+  private static byte[] SAVEVERSION = {2, 0}; // version 2 is the first Android version
   Board gameBoard;
   Commander gameCommand;
   AndPainter gamePainter;
+  Activity gameActivity;
   Thread thread;
   int w, h;
   boolean makePuzzle;
-  public AndController(Board tBoard) {
+  public AndController(Activity tActivity, Board tBoard) {
     super();
     gameBoard = tBoard;
-    gamePainter = new AndPainter(this, gameBoard);
-    w = Math.min(tPainter.getWidth(), tPainter.getHeight());
-    h = Math.min(tPainter.getWidth(), tPainter.getHeight());
+    gameActivity = tActivity;
+    gamePainter = new AndPainter(gameActivity, this, gameBoard);
+    w = Math.min(gamePainter.getWidth(), gamePainter.getHeight());
+    h = Math.min(gamePainter.getWidth(), gamePainter.getHeight());
     //System.out.println("screen is " + w + "x" + h);
     int fh = gamePainter.getFontHeight();
     gamePainter.setVertical(gamePainter.getWidth() > gamePainter.getHeight());
@@ -56,22 +68,22 @@ public class AndController implements Controller {
 
   protected void keyRepeated(int keyCode) {}
 
-  protected void keyPressed(int keyCode) {
-    int GAKey = this.getGameAction(keyCode);
-    if (gameCommand.numChange(keyCode - Canvas.KEY_NUM0));
-    else if (GAKey == Canvas.FIRE)
+  protected void keyPressed(int GAKey) {
+    if (gameCommand.numChange(GAKey - KeyEvent.KEYCODE_NUMPAD_0) ||
+        gameCommand.numChange(GAKey - KeyEvent.KEYCODE_0));
+    else if (GAKey == KeyEvent.KEYCODE_DPAD_CENTER)
       gameCommand.doButton(Controller.RIGHT);
-    else if (GAKey == Canvas.LEFT)
+    else if ((GAKey == KeyEvent.KEYCODE_SOFT_LEFT) || (GAKey == KeyEvent.KEYCODE_DPAD_LEFT))
       gameCommand.changePos(-1, 0);
-    else if (GAKey == Canvas.RIGHT)
+    else if ((GAKey == KeyEvent.KEYCODE_SOFT_RIGHT) || (GAKey == KeyEvent.KEYCODE_DPAD_RIGHT))
       gameCommand.changePos(1, 0);
-    else if (GAKey == Canvas.UP)
+    else if ((GAKey == KeyEvent.KEYCODE_VOLUME_UP) || (GAKey == KeyEvent.KEYCODE_DPAD_UP))
       gameCommand.changePos(0, -1);
-    else if (GAKey == Canvas.DOWN)
+    else if ((GAKey == KeyEvent.KEYCODE_VOLUME_DOWN) || (GAKey == KeyEvent.KEYCODE_DPAD_DOWN))
       gameCommand.changePos(0, 1);
-    else if (keyCode == Canvas.KEY_STAR)
+    else if (GAKey == KeyEvent.KEYCODE_STAR)
       gameCommand.doButton(Controller.RIGHT);
-    else if (keyCode == Canvas.KEY_POUND)
+    else if (GAKey == KeyEvent.KEYCODE_POUND)
       gameCommand.doCommand("Create");
   }
   protected void pointerPressed(int tx, int ty) {
@@ -79,8 +91,7 @@ public class AndController implements Controller {
   }
   protected void pointerDragged(int tx, int ty) {}
   protected void pointerReleased(int tx, int ty) {}
-  public void commandAction(Command c, Displayable s) {
-    String actionText = c.getLabel();
+  public void commandAction(String actionText) {
     boolean numResult;
     try {
       numResult = gameCommand.numChange(Integer.parseInt(actionText));
@@ -105,142 +116,63 @@ public class AndController implements Controller {
     if (unconditional) {
       System.out.println("Quitting due to a command, not a request");
     }
-    sDisplay.setCurrent((Displayable) null);
-  }
-  public void recoverDisplay(){
-    sDisplay.setCurrent(this);
-  }
-  public void doUpdate(){
-    this.repaint();
-  }
-  public void paint(Graphics g) {
-    g.drawImage(sudImage, 0, 0, Graphics.LEFT | Graphics.TOP);
+    gameActivity.finish();
   }
   public void quit(){
     saveBoard();
-    sMIDlet.notifyDestroyed();
+    gameActivity.finish();
   }
-  public void saveOptions() {
-    System.out.println("Saving legacy format Board");
-    try {
-      RecordStore.deleteRecordStore("sud_state");
-    }
-    catch (Exception e) {}
-    try {
-      sudRStore = RecordStore.openRecordStore("sud_state", true);
-    }
-    catch (Exception e) {
-      alertMsg("Could not open record store: " + e.getMessage());
-    }
-    int[] tBoard = new int[81];
-    gameBoard.staticSave(tBoard);
-    byte[] tRec = new byte[162];
-    for (int i = 0; i < 81; i++) {
-      tRec[i << 1] = (byte) ((tBoard[i] >> 7) & 127);
-      tRec[(i << 1) + 1] = (byte) (tBoard[i] & 127);
-    }
-    try {
-      sudRStore.setRecord(1, tRec, 0, tRec.length);
-    }
-    catch (InvalidRecordIDException ridex) {
-      // Records did not exist, create a new record
-      try {
-        sudRStore.addRecord(tRec, 0, tRec.length);
-      }
-      catch (RecordStoreException e) {
-        alertMsg("Could not add board record");
-      }
-    }
-    catch (Exception e) {
-      alertMsg("Could not save board: " + e.getMessage());
-    }
-    tRec = new byte[81];
-    gameBoard.saveFlags(tRec);
-    try {
-      sudRStore.setRecord(2, tRec, 0, tRec.length);
-      sudRStore.closeRecordStore();
-    }
-    catch (InvalidRecordIDException ridex) {
-      // Records did not exist, create a new record
-      try {
-        sudRStore.addRecord(tRec, 0, tRec.length);
-        sudRStore.closeRecordStore();
-      }
-      catch (RecordStoreException e) {
-        alertMsg("Could not add flag record");
-      }
-    }
-    catch (Exception e) {
-      alertMsg("Could not save flags: " + e.getMessage());
-    }
-  }
+
   /* (non-Javadoc)
    * @see org.gringene.jmesudoyu.base.Controller#loadBoard()
    */
   public void loadBoard() {
     int firstRecordSize = 0;
     System.out.println("Attempting to load from record store");
-    try {
-      sudRStore = RecordStore.openRecordStore("sud_state", true);
-      firstRecordSize = sudRStore.getRecordSize(1);
-    }
-    catch (RecordStoreException e) {
-      System.out.println("Could not open Record Store: " + e.getMessage());
-      sudRStore = null;
-    }
-    if (sudRStore != null) {
-      if(firstRecordSize != 2){
-        // We assume an older version of the save format, so try the legacy loading
+    SharedPreferences prefStore = gameActivity.getPreferences(Context.MODE_PRIVATE);
+    int numRecords = prefStore.getInt("saveCount",0);
+    int saveVersion = prefStore.getInt("saveVersion",0);
+    SaveResource tmpSR = new SaveResource();
+    byte[] tmpResult = null;
+    System.out.println("Save version appears to be "+saveVersion);
+    if(saveVersion == 2){
+      // The assumed record format is as follows
+      // Preference setting 'saveVersion': record Version number (int)
+      // Record n: org.gringene.jmesudoyu.base.SaveResource ID + data (org.gringene.jmesudoyu.base.SaveResource.IDLENGTH + arbitrary bytes)
+      for(int i = 0; i < numRecords; i++ ){
         try{
-          sudRStore.closeRecordStore();
-        } catch (Exception e) {}
-        legacyLoadBoard();
-      }
-      else{
-        int numRecords = 0;
-        int saveVersion = 0;
-        SaveResource tmpSR = new SaveResource();
-        byte[] tmpResult = null;
-        try{
-          numRecords = sudRStore.getNumRecords();
-          saveVersion = sudRStore.getRecord(1)[0];
-        } catch (Exception e){
-          saveVersion = 0;
-        }
-        System.out.println("Save version appears to be "+saveVersion);
-        if(saveVersion == 1){
-          // The assumed record format is as follows
-          // Record 1: record Version number (1 byte)
-          // Record n: org.gringene.jmesudoyu.base.SaveResource ID + data (org.gringene.jmesudoyu.base.SaveResource.IDLENGTH + arbitrary bytes)
-          // note: the RecordStore ID numbers are 1-based
-          for(int i = 2; i < (numRecords+1); i++ ){
-            try{
-              System.out.println("Loading up record #"+i);
-              tmpResult = sudRStore.getRecord(i);
-              tmpResult = tmpSR.loadData(tmpResult);
-            } catch (Exception e){
-              System.out.println("Error loading resource " + i);
+          System.out.println("Loading up record #"+i);
+          tmpResult = null;
+          // get the record length (first 2 bytes of each record)
+          int recordLength = prefStore.getInt(String.format("recordSize_%03d",i), -1);
+          if(recordLength > 0){
+            tmpResult = new byte[recordLength];
+            FileInputStream fin = gameActivity.openFileInput(String.format("sudRStore_%03d",i));
+            int bytesRead = fin.read(tmpResult);
+            if(bytesRead != tmpResult.length){
+              System.out.printf("Warning: record #%d was smaller than expected",i);
             }
-            if((tmpResult != null) && (tmpResult.length > 0)){
-              System.out.println("Warning: " + tmpResult.length +
-                  " bytes left over from resource " + i);
-            }
-            if(tmpSR.getIDInt() == SaveResource.BOARDDATA){
-              System.out.println("Loading game board");
-              tmpSR.getData(gameBoard);
-            }
-            if(tmpSR.getIDInt() == SaveResource.GAMESETTINGS){
-              System.out.println("Loading game settings");
-              String[] settingsKeys = new String[Commander.SETTINGSSIZE];
-              int[] settingsValues = new int[Commander.SETTINGSSIZE];
-              tmpSR.getData(settingsKeys, settingsValues);
-              gameCommand.loadSettings(settingsKeys, settingsValues);
-            }
+            tmpResult = tmpSR.loadData(tmpResult);
+            fin.close();
           }
+        } catch (Exception e){
+          System.out.println("Error loading resource " + i);
         }
-        try{
-          sudRStore.closeRecordStore();
-        } catch (Exception e){}
+        if((tmpResult != null) && (tmpResult.length > 0)){
+          System.out.println("Warning: " + tmpResult.length +
+              " bytes left over from resource " + i);
+        }
+        if(tmpSR.getIDInt() == SaveResource.BOARDDATA){
+          System.out.println("Loading game board");
+          tmpSR.getData(gameBoard);
+        }
+        if(tmpSR.getIDInt() == SaveResource.GAMESETTINGS){
+          System.out.println("Loading game settings");
+          String[] settingsKeys = new String[Commander.SETTINGSSIZE];
+          int[] settingsValues = new int[Commander.SETTINGSSIZE];
+          tmpSR.getData(settingsKeys, settingsValues);
+          gameCommand.loadSettings(settingsKeys, settingsValues);
+        }
       }
     }
   }
@@ -248,38 +180,17 @@ public class AndController implements Controller {
    * @see org.gringene.jmesudoyu.base.Controller#saveBoard()
    */
   public void saveBoard() {
-    System.out.println("Attempting to save to record store");
-    // I want everyone to upgrade to the new format, so just hose the current record
-    // store (this is the way it was done in previous versions of AndMeSudoYu, so this
-    // is consistent with how it worked previously).
-    // A more intelligent way would enable forward compatibility, keeping the store as
-    // it is and just updating things that have the same Resource IDs as those already
-    // known... although why someone would want to downgrade is beyond my understanding.
-    // However, this alternative approach may have merit in reducing processor stress --
-    // overwriting records should be less intensive than clearing everything
-    // and starting over.
-    try {
-      RecordStore.deleteRecordStore("sud_state");
-    }
-    catch (Exception e) {}
-    try {
-      sudRStore = RecordStore.openRecordStore("sud_state", true);
-    }
-    catch (Exception e) {
-      alertMsg("Could not open record store: " + e.getMessage());
-    }
-    this.rsSave(AndController.SAVEVERSION);
+    SharedPreferences prefStore = gameActivity.getPreferences(Context.MODE_PRIVATE);
+    prefStore.edit().putInt("saveVersion",AndController.SAVEVERSION[0] + AndController.SAVEVERSION[1] << 8);
     SaveResource tmpSR = new SaveResource();
     tmpSR.setID(SaveResource.BOARDDATA); tmpSR.setData(gameBoard);
-    this.rsSave(tmpSR.saveData());
+    this.rsSave(0,tmpSR.saveData());
     String[] settingsKeys = new String[Commander.SETTINGSSIZE];
     int[] settingsValues = new int[Commander.SETTINGSSIZE];
     gameCommand.saveSettings(settingsKeys, settingsValues);
     tmpSR.setID(SaveResource.GAMESETTINGS); tmpSR.setData(settingsKeys, settingsValues);
-    this.rsSave(tmpSR.saveData());
-    try{
-      sudRStore.closeRecordStore();
-    } catch (Exception e){}
+    this.rsSave(1,tmpSR.saveData());
+    prefStore.edit().putInt("saveCount",2);
   }
   /**
    * Function to store a byte array into a particular (opened) record store.
@@ -290,11 +201,12 @@ public class AndController implements Controller {
    * @param data
    *            data to save into RecordStore
    */
-  private void rsSave(byte[] data){
-    int tmpNum = 0;
+  private void rsSave(int tmpNum, byte[] data){
     if(data != null){
       try{
-        tmpNum = sudRStore.addRecord(data, 0, data.length);
+        FileOutputStream fos = gameActivity.openFileOutput(String.format("sudRStore_%03d",tmpNum),Context.MODE_PRIVATE);
+        fos.write(data);
+        fos.close();
         System.out.println("Stored data in record # "+ tmpNum);
       } catch (Exception e){
         System.out.println("Unable to store data in record # "+ tmpNum +
@@ -302,73 +214,24 @@ public class AndController implements Controller {
       }
     }
   }
-  /**
-   * The older load method -- from AndMeSudoYu versions 1.60 and below
-   */
-  private void legacyLoadBoard() {
-    System.out.println("Loading legacy format board");
-    int[] tBoard = new int[81];
-    try {
-      sudRStore = RecordStore.openRecordStore("sud_state", true);
-    }
-    catch (RecordStoreException e) {
-      System.out.println("Could not open Record Store: " + e.getMessage());
-      sudRStore = null;
-    }
-    if (sudRStore != null) {
-      byte[] tRec;
-      try {
-        tRec = sudRStore.getRecord(1);
-      }
-      catch (Exception e) {
-        System.out.println("Could not load board: " + e.toString());
-        tRec = null;
-      }
-      if (tRec != null && (tRec.length == 162)) {
-        for (int i = 0; i < 81; i++) {
-          tBoard[i] = (tRec[i << 1] << 7) | tRec[(i << 1) + 1];
-          if (tBoard[i] < 0)
-            tBoard[i] = 511;
-        }
-        gameBoard.staticLoad(tBoard);
-        //tRec = sudRStore.getRecord(REC_OPTIONS);
-        //pInput.setExpert(tRec[0] == 0);
-      }
-      try {
-        tRec = sudRStore.getRecord(2);
-        sudRStore.closeRecordStore();
-      }
-      catch (Exception e) {
-        System.out.println("Could not load board: " + e.toString());
-        tRec = null;
-      }
-      if (tRec != null && (tRec.length == 81)) {
-        gameBoard.loadFlags(tRec);
-      }
-    }
-  }
   public void makeProgress(String title, String[] labels, int[] limits, GlobalVar[] values, int cancelOptions){
-    Form f = new Form(title);
-    Command temp;
+    ProgressDialog p = new ProgressDialog(gameActivity);
+    p.setTitle(title);
     if((cancelOptions & Controller.OP_CANCEL) != 0){
-      temp = new Command("Cancel", Command.CANCEL, 1);
-      f.addCommand(temp);
-      f.setCommandListener(this);
+      p.setButton(DialogInterface.BUTTON_NEGATIVE,gameActivity.getResources().getText(R.string.button_cancel),this);
     }
     if((cancelOptions & Controller.OP_ACCEPT) != 0){
-      temp = new Command("Accept", Command.OK, 1);
-      f.addCommand(temp);
-      f.setCommandListener(this);
+      p.setButton(DialogInterface.BUTTON_NEGATIVE,gameActivity.getResources().getText(R.string.button_accept),this);
     }
     int num = labels.length;
-    Gauge[] gauges = new Gauge[num];
-    for(int i=0; i<num; i++){
-      gauges[i] = new Gauge(labels[i], false, limits[i], 0);
-      f.append(gauges[i]);
-      values[i].setValue(0);
-      gamePainter.setGauge(i, gauges[i], values[i]);
+    if(num < 1){
+      return;
     }
-    sDisplay.setCurrent(f);
+    p.setMax(limits[0]);
+    p.setMessage(labels[0]);
+    p.setIndeterminate(false);
+    //NOTE: progress indicators beyond the first are ignored. While a secondary indicator
+    //      can be used, it must have the same limit as the first progress bar
   }
 
   @Override
@@ -379,6 +242,14 @@ public class AndController implements Controller {
   @Override
   public int getHeight() {
     return 0;
+  }
+
+  @Override
+  public void recoverDisplay() {
+  }
+
+  @Override
+  public void doUpdate() {
   }
 
   /* (non-Javadoc)
@@ -424,35 +295,37 @@ public class AndController implements Controller {
     * @see org.gringene.jmesudoyu.base.Controller#infoMsg(java.lang.String, java.lang.String)
     */
   public void infoMsg(String title, String msg) {
-    Alert al = new Alert(title);
-    al.setTimeout(Alert.FOREVER);
-    al.setString(msg);
-    sDisplay.setCurrent(al);
+    AlertDialog.Builder builder = new AlertDialog.Builder(gameActivity);
+    builder
+        .setMessage(msg)
+        .setTitle(title).setPositiveButton(R.string.ok,
+        new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog, int which){}})
+        .setIcon(R.drawable.ic_action_about);
+    builder.create().show();
   }
   // alert with timeout, logs to System.out
    /* (non-Javadoc)
     * @see org.gringene.jmesudoyu.base.Controller#alertMsg(java.lang.String, java.lang.String)
     */
   public void alertMsg(String title, String msg) {
-    Alert al = new Alert(title);
-    al.setString(msg);
-    sDisplay.setCurrent(al);
+    // title could probably be ignored
+    Toast.makeText(gameActivity, String.format("%s -- %s", title, msg), Toast.LENGTH_LONG);
     System.out.println(msg);
   }
   public void alertMsg(String msg) {
     alertMsg("Alert", msg);
   }
+
   public void win(){
-    try
-    {
-      InputStream is = getClass().getResourceAsStream("/v.imy");
-      Player m_player = Manager.createPlayer(is, "audio/imelody");
-      m_player.prefetch();
-      m_player.start();
-    }
-    catch (Exception ex)
-    {
-      System.out.println(ex.toString());
-    }
+    // vibrating is surprisingly easier in Android than in j2me
+    long[] vibratePattern = {500,200,500,800};
+    Vibrator v = (Vibrator)gameActivity.getSystemService(Context.VIBRATOR_SERVICE);
+    v.vibrate(vibratePattern,2);
+  }
+
+  @Override
+  public void onClick(DialogInterface dialogInterface, int i) {
+
   }
 }

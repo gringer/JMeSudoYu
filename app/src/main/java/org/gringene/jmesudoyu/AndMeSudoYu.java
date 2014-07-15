@@ -20,9 +20,8 @@ package org.gringene.jmesudoyu;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Display;
+import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import org.gringene.jmesudoyu.base.Board;
@@ -34,48 +33,53 @@ import org.gringene.jmesudoyu.base.Board;
  * notes on the function. A mistake in not doing this was made early on, and
  * trying to re-learn code and attempting to work out the intention of functions
  * took a long time.
- * 
+ *
  * @author gringer
  */
 public class AndMeSudoYu extends ActionBarActivity {
-   private AndController pInput;
-   private Board gameBoard;
-   boolean paused;
+  private AndController pInput;
+  boolean paused;
 
   @Override
-   public void onCreate(Bundle savedInstance) {
-     super.onCreate(savedInstance);
-    setContentView(R.layout.activity_my);
-      paused = false;
-      gameBoard = new Board();
-      pInput = new AndController(gameBoard, this);
-      pInput.init();
-   }
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    pInput.keyPressed(keyCode);
+    return super.onKeyDown(keyCode, event);
+  }
 
-   /* (non-Javadoc)
-    * @see android.support.v7.app.ActionBarActivity#onStop()
-    */
-   protected void onStop() {
-      if (pInput != null) {
-         paused = true;
-         try {
-            pInput.pause();
-         }
-         catch (Exception e) {
-           System.err.println("Unable to stop the application");
-         }
+  @Override
+  public void onCreate(Bundle savedInstance) {
+    super.onCreate(savedInstance);
+    setContentView(R.layout.activity_my);
+    paused = false;
+    Board gameBoard = new Board();
+    pInput = new AndController(this, gameBoard);
+    pInput.init();
+  }
+
+  /* (non-Javadoc)
+   * @see android.support.v7.app.ActionBarActivity#onStop()
+   */
+  protected void onStop() {
+    if (pInput != null) {
+      paused = true;
+      try {
+        pInput.pause();
       }
-   }
+      catch (Exception e) {
+        System.err.println("Unable to stop the application");
+      }
+    }
+  }
 
   /* (non-Javadoc)
    * @see android.support.v7.app.ActionBarActivity#onPostResume()
    */
-   protected void onRestart() {
-      if(paused){
-         paused = false;
-         pInput.resume();
-      }      
-   }
+  protected void onRestart() {
+    if(paused){
+      paused = false;
+      pInput.resume();
+    }
+  }
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -89,7 +93,9 @@ public class AndMeSudoYu extends ActionBarActivity {
     // Handle action bar item clicks here. The action bar will
     // automatically handle clicks on the Home/Up button, so long
     // as you specify a parent activity in AndroidManifest.xml.
-    int id = item.getItemId();
-    return ((id == R.id.action_settings) || super.onOptionsItemSelected(item));
+    String tTitle = item.getTitle().toString();
+    // TODO: work properly with translated strings
+    pInput.commandAction(tTitle);
+    return (super.onOptionsItemSelected(item));
   }
 }

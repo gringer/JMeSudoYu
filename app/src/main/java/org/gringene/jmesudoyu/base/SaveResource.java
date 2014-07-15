@@ -184,7 +184,7 @@ public class SaveResource {
         }
         if (retVal) {
             int keysLength = ((this.resourceData[0] & 0xff) << 8)
-                    | ((this.resourceData[1] & 0xff) << 0);
+                    | ((this.resourceData[1] & 0xff));
             keysLength = Math.min(Math.min(keys.length, values.length),
                     keysLength);
             int curPos = 2; // start after the key length bit
@@ -193,15 +193,15 @@ public class SaveResource {
                     keyChars = new char[resourceData[curPos]];
                     keys[keyNum] = "";
                     for (int i = 0; i < keyChars.length; i++) {
-                        // could be dataloss if the keys are not ASCII
+                        // could be data loss if the keys are not ASCII
                         keyChars[i] = (char) this.resourceData[curPos + 1 + i];
                     }
                     keys[keyNum] = String.valueOf(keyChars);
                     curPos = curPos + 1 + keyChars.length;
-                    values[keyNum] = ((this.resourceData[curPos + 0] & 0xff) << 24)
+                    values[keyNum] = ((this.resourceData[curPos] & 0xff) << 24)
                             | ((this.resourceData[curPos + 1] & 0xff) << 16)
                             | ((this.resourceData[curPos + 2] & 0xff) << 8)
-                            | ((this.resourceData[curPos + 3] & 0xff) << 0);
+                            | ((this.resourceData[curPos + 3] & 0xff));
                     curPos = curPos + 4;
                 }
             }
@@ -226,7 +226,6 @@ public class SaveResource {
      * @return true if the resource data was entered successfully
      */
     public boolean setData(Board tBoard) {
-        boolean retVal = true;
         this.resourceData = new byte[1 + Point.MAX * Point.MAX * 3];
         this.resourceData[0] = (byte) Point.MAX;
         byte[] boardData = new byte[Point.MAX * Point.MAX * 3];
@@ -234,7 +233,7 @@ public class SaveResource {
         for (int i = 0; i < boardData.length; i++) {
             this.resourceData[1 + i] = boardData[i];
         }
-        return retVal;
+        return true;
     }
 
     /**
@@ -254,7 +253,7 @@ public class SaveResource {
         }
         if (retVal) {
             tPMax = this.resourceData[0];
-            retVal = retVal && (tPMax == Point.MAX);
+            retVal = (tPMax == Point.MAX);
         }
         if (retVal) {
             byte[] boardData = new byte[tPMax * tPMax * 3];
@@ -299,7 +298,7 @@ public class SaveResource {
         this.resourceData = null;
         if (tData.length > SaveResource.IDLENGTH) {
             this.resourceID = ((tData[0] & 0xff) << 8)
-                    | ((tData[1] & 0xff) << 0);
+                    | (tData[1] & 0xff);
         } else {
             this.resourceID = SaveResource.NA;
             this.resourceData = null;
@@ -311,8 +310,8 @@ public class SaveResource {
                 this.resourceData[i] = tData[i + SaveResource.IDLENGTH];
             }
         } else if (this.resourceID == SaveResource.GAMESETTINGS) {
-            int keysLength = ((tData[SaveResource.IDLENGTH + 0] & 0xff) << 8)
-                    | ((tData[SaveResource.IDLENGTH + 1] & 0xff) << 0);
+            int keysLength = ((tData[SaveResource.IDLENGTH] & 0xff) << 8)
+                    | ((tData[SaveResource.IDLENGTH + 1] & 0xff));
             int totalLength = 2; // start after the key length bit
             for (int keyNum = 0; keyNum < keysLength; keyNum++) {
                 if (tData[totalLength + SaveResource.IDLENGTH] <= 100) {

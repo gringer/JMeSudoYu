@@ -10,7 +10,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceLarge"
-    android:text="Large Text"
+    android:text="@string/dialog_puzzle_title"
     android:id="@+id/textView"
     android:gravity="center_horizontal|top"/>
 
@@ -18,7 +18,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceMedium"
-    android:text="Medium Text"
+    android:text="@string/dialog_puzzle_progress_fixed"
     android:id="@+id/textView2"/>
 
   <ProgressBar
@@ -31,7 +31,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:textAppearance="?android:attr/textAppearanceMedium"
-    android:text="Medium Text"
+    android:text="@string/dialog_puzzle_progress_limit"
     android:id="@+id/textView3"/>
 
   <ProgressBar
@@ -43,25 +43,23 @@
   <LinearLayout
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="0dp"
     android:layout_gravity="center_horizontal"
     android:layout_weight="0.41">
 
     <Button
-      android:layout_width="0dp"
+      android:layout_width="150dp"
       android:layout_height="wrap_content"
-      android:text="New Button"
+      android:text="@string/button_cancel"
       android:id="@+id/button"
-      android:layout_gravity="center_vertical"
-      android:layout_weight="1"/>
+      />
 
     <Button
-      android:layout_width="0dp"
+      android:layout_width="150dp"
       android:layout_height="wrap_content"
-      android:text="New Button"
+      android:text="@string/button_accept"
       android:id="@+id/button2"
-      android:layout_weight="1"
-      android:layout_gravity="center_vertical"/>
+      />
   </LinearLayout>
 
 </LinearLayout>

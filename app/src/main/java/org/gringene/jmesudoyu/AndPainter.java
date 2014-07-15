@@ -30,6 +30,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -68,6 +69,9 @@ public class AndPainter extends SurfaceView implements Painter, Runnable {
   int old0, old1;
   GlobalVar v0, v1;
   Thread thread;
+  public AndPainter(Context tContext, AttributeSet tAttributeSet) {
+    super(tContext, tAttributeSet);
+  }
   /**
    * Constructor for this class. Sets all fields to their default values, and
    * links the class to a org.gringene.jmesudoyu.base.Controller and a Board.
@@ -80,6 +84,8 @@ public class AndPainter extends SurfaceView implements Painter, Runnable {
     // just in case update gets called on them
     v0 = new GlobalVar();
     v1 = new GlobalVar();
+    brushes.setTextSize(AndPainter.BFSIZE);
+    brushes.setTypeface(AndPainter.BOARDFONT);
     brushes.getTextBounds("X",0,1,fontXRect);
   }
 
@@ -350,8 +356,8 @@ public class AndPainter extends SurfaceView implements Painter, Runnable {
    * @see java.lang.Runnable#run()
    */
   public void run() {
-    Thread mythread = Thread.currentThread();
-    while (mythread == thread) {
+    Thread myThread = Thread.currentThread();
+    while (myThread == thread) {
       if(v0.notEquals(old0)){
         old0 = v0.getValue();
 
@@ -362,7 +368,9 @@ public class AndPainter extends SurfaceView implements Painter, Runnable {
       try{
         Thread.sleep(200);
       }
-      catch(Exception e){}
+      catch(Exception e){
+        System.err.println("Error: unable to sleep");
+      }
     }
   }
   /* (non-Javadoc)
