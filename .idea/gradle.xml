@@ -13,6 +13,8 @@
         </option>
       </GradleProjectSettings>
     </option>
+    <option name="gradleVmOptions" value="-Xms512m -Xmx2048m" />
+    <option name="offlineWork" value="true" />
   </component>
 </project>
 
